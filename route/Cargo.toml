@@ -1,0 +1,11 @@
+[package]
+name = "route"
+version = "0.1.0"
+authors = ["Chubak Bidpaa <chubakbidpaa@gmail.com>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "1.0"
+quote = "1.0"
