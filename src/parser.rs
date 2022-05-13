@@ -1,10 +1,16 @@
+use serde::{Serialize, Deserialize};
+
 use crate::common::{self, *};
 use crate::request::Request;
+use std::net::TcpStream;
+use std::io::{BufReader, Read};
 
 pub struct RequestParser;
 
 impl RequestParser {
-    pub fn parse_and_create(req: String) -> Request {
+    pub fn parse_and_create(stream: &TcpStream) -> Request {
+        let req = Self::read_data(stream);
+
         let method = Self::get_method(&req);
         let uri = Self::get_uri(&req);
         let headers = Self::get_headers(&req);
@@ -17,8 +23,8 @@ impl RequestParser {
         let bare_uri = Self::get_bare_url(&uri);
         let port = Self::get_port(&uri);
         let uri_paths = Self::get_uri_paths(&uri);
-        let body = Self::get_body(&req);
-
+        let body = Self::get_body(&req, content_type.clone());
+        let ip = stream.local_addr().unwrap();
 
         Request {method, 
             uri, 
@@ -32,8 +38,21 @@ impl RequestParser {
             bare_uri,
             port,
             uri_paths,
-            body 
+            body,
+            ip,
         }
+    } 
+
+    fn read_data(stream: &TcpStream) -> String {
+        let mut reader = BufReader::new(stream);
+
+        let mut data = Vec::<u8>::new();
+
+        reader.read_to_end(&mut data).unwrap();
+
+        let ret = String::from_utf8(data).unwrap();
+
+        ret
     }
 
     fn get_method(req: &String) -> Method {
@@ -226,7 +245,7 @@ impl RequestParser {
         ret
     }
 
-    fn get_body(req: &String) -> String {
+    fn get_body(req: &String, ctype: MimeType) -> RequestBody {
         let req_split = req.split("\n\n");
 
         let mut ret = String::new();
@@ -237,6 +256,6 @@ impl RequestParser {
             }
         }
 
-        ret
+        RequestBody::from_str(ret, ctype)
     }
 }

@@ -1,5 +1,5 @@
 [package]
-name = "route"
+name = "chuby-macros"
 version = "0.1.0"
 authors = ["Chubak Bidpaa <chubakbidpaa@gmail.com>"]
 

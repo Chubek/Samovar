@@ -1,8 +1,10 @@
+use std::net::{SocketAddr, TcpStream};
+
 use crate::{common::*, parser::RequestParser};
 
 pub struct Request {
     pub headers: Vec<Header>,
-    pub body: String,
+    pub body: RequestBody,
     pub uri: String,
     pub uri_params: Vec<Params>,
     pub uri_paths: Vec<String>,
@@ -14,13 +16,16 @@ pub struct Request {
     pub scheme: String,
     pub referer: String,
     pub content_type: MimeType,
+    pub ip: SocketAddr,
 }
 
 
 impl Request {
-    pub fn from(s: String) -> Self {
+    pub fn from(s: &TcpStream) -> Self {
         let req = RequestParser::parse_and_create(s);
 
         req
     }
+
+    pub fn
 }
