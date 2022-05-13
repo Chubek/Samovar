@@ -27,5 +27,4 @@ impl Request {
         req
     }
 
-    pub fn
 }

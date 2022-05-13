@@ -1,7 +1,8 @@
+use core::panic;
 use std::marker::PhantomData;
 
-use serde::{de::DeserializeOwned, Deserialize};
-use serde_json::{from_str, to_string, Value};
+use serde::Deserialize;
+use serde_json::{from_str, Value};
 
 pub struct Header {
     pub key: String,
@@ -15,14 +16,15 @@ pub enum MimeType {
     ApplicationOctetStream,
 }
 
-pub enum BodyType {
+pub enum RequestBodyType {
     Json(Value),
     Str(String),
 }
 
+
 pub struct RequestBody {
     pub content_type: MimeType,
-    pub content: BodyType,
+    pub content: RequestBodyType,
 }
 
 impl RequestBody {
@@ -31,28 +33,46 @@ impl RequestBody {
             MimeType::ApplicationJson => {
                 let j: Value = from_str(t.as_str()).unwrap();
 
-                RequestBody{content: BodyType::Json(j), content_type: ctype}
+                RequestBody{content: RequestBodyType::Json(j), content_type: ctype}
             },
-            _ => RequestBody{content: BodyType::Str(t), content_type: ctype},
+            _ => RequestBody{content: RequestBodyType::Str(t), content_type: ctype},
         }
     }
 
 }
 
-pub trait ResponseBodyType {
+
+pub enum ResponseBodyType<'a, T: Clone + ResponseCommon + Deserialize<'a>> {
+    Object(T),
+    Str(String),
+    PhantomData(&'a T),
+}
+
+pub trait ResponseCommon {
     fn parse_to_string(&self) -> String;
     fn get_length(&self) -> usize;
 }
 
-pub struct ResponseBody<'a, T: ResponseBodyType + Deserialize<'a>> {
-    pub contnet_type: MimeType,
-    pub content: T,
+pub struct ResponseBody<'a, T: Clone + ResponseCommon + Deserialize<'a>> {
+    pub content_type: MimeType,
+    pub content: ResponseBodyType<'a, T>,
     _phantom: PhantomData<&'a T>
 }
 
-impl<'a,T: ResponseBodyType + Deserialize<'a>> ResponseBody<'a, T> {
-    pub fn new(ctype: MimeType, content: T) -> Self {
-        ResponseBody { contnet_type: ctype, content, _phantom: PhantomData }
+impl<'a,T: Clone + ResponseCommon + Deserialize<'a>> ResponseBody<'a, T> {
+    pub fn new_json(content: T) -> Self {       
+        ResponseBody{content: ResponseBodyType::Object(content), 
+            content_type: MimeType::ApplicationJson, 
+            _phantom: PhantomData}            
+    }
+
+    pub fn new_string(ctype: MimeType, t: String) -> Self {
+        match ctype {
+            MimeType::ApplicationJson => panic!("Wrong mimetype"),
+            _ => ResponseBody {content_type: ctype, 
+                                content: ResponseBodyType::Str(t),
+                                _phantom: PhantomData},
+        }
     }
 }
 

@@ -17,14 +17,16 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
 }   
 
-#[proc_macro_derive(ResponseBodyType)]
+#[proc_macro_derive(ResponseCommon)]
 pub fn derive_trait_body_type(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let name = input.ident;
 
     let expanded = quote! {
-        impl ResponseBodyType for #name {
+        use chuby_http::common::ResponseCommon;
+
+        impl ResponseCommon for #name {
             fn get_length(&self) -> usize {
                 let self_str = serde_json::to_string(&self).unwrap();
 
