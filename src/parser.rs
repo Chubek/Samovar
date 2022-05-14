@@ -257,3 +257,45 @@ impl RequestParser {
         RequestBody::from_str(ret, ctype)
     }
 }
+
+
+pub struct UrlParser;
+
+impl UrlParser {
+    fn get_first_line(d: String) -> String {
+        let first_line = &d.lines()
+                    .into_iter()
+                    .enumerate()
+                    .filter(|&(i, x)| i == 0)
+                    .map(|(_, x)| x.to_string())
+                    .collect::<Vec<String>>()[0];
+
+        first_line.clone()
+    }
+    
+    fn get_second_word(d: String) -> String {
+        let fline = Self::get_first_line(d);
+
+        let second_word = &fline.split_whitespace()
+                          .into_iter()
+                          .enumerate()
+                          .filter(|&(i, x)| i == 1)
+                          .map(|(_, x)| x.to_string())
+                         .collect::<Vec<String>>()[0];
+
+        second_word.clone()
+    }
+
+    fn parse_url(d: String) -> String {
+        let url = Self::get_second_word(d);
+
+        let mut uri_split = url.split("/").collect::<Vec<&str>>();
+
+        uri_split.remove(0);
+
+        let uri = uri_split.join("/");
+
+
+        uri
+    }
+}
