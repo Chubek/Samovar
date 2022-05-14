@@ -1,10 +1,12 @@
-use std::{path::{Path, PathBuf}, fs::File};
+use std::{path::{Path, PathBuf}, fs::File, io::Write};
 use glob::glob;
 use crate::{common::*, response};
 use std::fs::read_to_string;
 use content_inspector::inspect;
 use std::collections::HashMap;
 use crate::response::Response;
+use std::net::TcpStream;
+use std::io::BufWriter;
 
 lazy_static! {
     static ref HTML_SERVER: &'static str = r#"<html data-theme="coffee"><head><title>Chuby-HTTP FileServer --- Powered by Ritalin</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/daisyui@2.14.3/dist/full.css" rel="stylesheet" type="text/css"/><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer"/></head><body><div class="flex flex-col place-items-center m-5 border-opacity-50">REPLACE_ALL</div><div class="grid h-20 w-full m-3 card bg-base-200 rounded-box place-items-center footer"><div class="footer-center">Powered by Chuby-HTTPFind me on Github: <a href="https://github.com/chbuek">github.com/chubek</a></div></div></html>"#;
@@ -191,11 +193,12 @@ impl DirServer {
         response_text
     }
 
-    pub fn serve(&self, uri: String) -> String {
+    pub fn compose(&self, uri: String) -> String {
+
         match uri == self.path {
             true => self.create_respons_with_index(),
             false => self.crease_response_with_file(uri),
-        }
+        }       
     }
 
 }
@@ -231,12 +234,9 @@ impl SingleFileServer {
         response_text
     }
 
-    fn serve(&self, uri: String) -> String {
+    fn compose(&self, uri: String) -> String{
         let SingleFileServer(fc) = self;
-
-        match uri == fc.uri {
-            true => self.create_response(),
-            false => todo!()
-        }
+        
+        self.create_response()       
     }
 }

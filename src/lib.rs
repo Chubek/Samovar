@@ -10,6 +10,8 @@ mod common;
 mod parser;
 mod response;
 mod staticserver;
+mod context;
+mod endpoint;
 
 #[cfg(test)]
 mod tests {    

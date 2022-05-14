@@ -1,12 +1,22 @@
 #[macro_use]
-extern crate route;
+extern crate chuby_macros;
 
+pub trait TrA {
+    type Item;
 
-#[route(hell1o, a, "wo1rld", "sss")]
-fn aa() -> u8 {
-    11 > 2
+    fn do_type(&self) -> Self::Item;
 }
 
+
+#[derive(ContextCommon)]
+pub struct MB<T> {
+    mb: T,
+}
+
+
+
 fn main() {
-    dummy()
+    let mb = MB { mb: "sfsf".to_string() };
+
+    println!("{:?}", mb);
 }

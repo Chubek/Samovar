@@ -6,5 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chuby-http = { path = "../"}
-route = { path = "../route" }
+#chuby-http = { path = "../"}
+chuby-macros = { path = "../chuby-macros" }
