@@ -95,7 +95,7 @@ pub struct UserInfo {
 }
 
 
-
+#[derive(Clone, Copy)]
 pub enum HttpStatus {
     Http100Continue,
     Http101SwitchingProtocols,
