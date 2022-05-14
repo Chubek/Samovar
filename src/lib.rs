@@ -9,6 +9,7 @@ mod request;
 mod common;
 mod parser;
 mod response;
+mod staticserver;
 
 #[cfg(test)]
 mod tests {    

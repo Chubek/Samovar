@@ -5,13 +5,13 @@ use std::io::BufWriter;
 use std::net::TcpStream;
 
 pub struct Response<'a, T: Clone + ResponseCommon + Deserialize<'a>> {
-    pub headers: Vec<Header>,
-    pub server: String,
-    pub status: HttpStatus,
-    pub content_type: MimeType,
-    pub body: ResponseBody<'a, T>,
-    pub content_length: usize,
-    pub datetime: DateTime<Utc>,
+    headers: Vec<Header>,
+    server: String,
+    status: HttpStatus,
+    content_type: MimeType,
+    body: ResponseBody<'a, T>,
+    content_length: usize,
+    datetime: DateTime<Utc>,
 }
 
 impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
@@ -39,16 +39,7 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         let content_length = object.get_length();
         let content_type = MimeType::ApplicationJson;
         let datetime = Utc::now();
-        let headers = vec![
-            Header {
-                key: "Content-Type".to_string(),
-                value: "application/json".to_string(),
-            },
-            Header {
-                key: "Content-Length".to_string(),
-                value: format!("{}", content_length.clone()),
-            },
-        ];
+        let headers = vec![];
 
         Response {
             headers,
@@ -66,16 +57,7 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         let server = String::from("ChubyHttp/0.0.1b");
         let content_length = t.len();
         let datetime = Utc::now();
-        let headers = vec![
-            Header {
-                key: "Content-Type".to_string(),
-                value: "text/plain".to_string(),
-            },
-            Header {
-                key: "Content-Length".to_string(),
-                value: format!("{}", content_length.clone()),
-            },
-        ];
+        let headers = vec![];
 
         Response {
             headers,
@@ -98,6 +80,20 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         self.headers.push(header_date)
     }
 
+    fn format_content_add_header(&mut self) {
+        let header_ctype = Header {
+            key: "Content-Type".to_string(),
+            value: self.content_type.into(),
+        };
+        let header_clength = Header {
+            key: "Content-Length".to_string(),
+            value: self.content_length.to_string(),
+        };
+
+        self.headers.push(header_ctype);
+        self.headers.push(header_clength);
+    }
+
     fn format_response_metadata(&self) -> String {
         let status_string: String = self.status.into();
 
@@ -110,19 +106,59 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         self.headers.sort_by_key(|x| x.key.clone());
     }
 
-    pub fn set_header(&mut self, key: String, value: String) {        
+    pub fn set_header(&mut self, key: String, value: String) {
         if self.headers.iter().filter(|x| x.key == key).count() > 0 {
             for h in self.headers.iter_mut() {
                 if h.key == key {
                     h.value = value.clone()
                 }
             }
-        }
-        else {
-            let new_header = Header { key: key.clone(), value: value.clone() };
+        } else {
+            let new_header = Header {
+                key: key.clone(),
+                value: value.clone(),
+            };
 
             self.headers.push(new_header);
         }
+    }
+
+    fn make_body(&self) -> String {
+        match self.body.content {
+            ResponseBodyType::Object(obj) => obj.parse_to_string(),
+            ResponseBodyType::Str(t) => t,
+            ResponseBodyType::PhantomData(_) => "".to_string(),
+        }
+    }
+
+    fn make_header_single(h: &Header) -> String {
+        let ret = format!("{}: {}", h.key, h.value);
+
+        ret
+    }
+
+    fn make_header(&self) -> String {
+        self.format_date_add_header();
+        self.format_content_add_header();
+        self.sort_header_vec();
         
+
+        let h_joined = self
+            .headers
+            .iter()
+            .map(|x| Self::make_header_single(x))
+            .collect::<Vec<String>>()
+            .join("\n");
+        h_joined
+    }
+
+    pub fn compose(&mut self) -> String {
+        let metadata = self.format_response_metadata();
+        let headers_joined = self.make_header();
+        let body = self.make_body();
+
+        let ret = format!("{}\n{}\n\n{}", metadata, headers_joined, body);
+
+        ret
     }
 }

@@ -14,6 +14,21 @@ pub enum MimeType {
     TextPlain,
     TextHtml,
     ApplicationOctetStream,
+    TextJavaScript,
+    TextCSS,
+}
+
+impl Into<String> for MimeType {
+    fn into(self) -> String {
+        match self {
+            MimeType::ApplicationJson => "application/json".to_string(),
+            MimeType::TextPlain => "text/plain".to_string(),
+            MimeType::TextHtml => "text/html".to_string(),
+            MimeType::ApplicationOctetStream => "application/octet-stream".to_string(),
+            MimeType::TextJavaScript => "text/javascript".to_string(),
+            MimeType::TextCSS => "text/css".to_string(),
+        }
+    } 
 }
 
 pub enum RequestBodyType {
