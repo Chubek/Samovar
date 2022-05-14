@@ -1,3 +1,4 @@
+use serde::__private::de::IdentifierDeserializer;
 use serde::{Serialize, Deserialize};
 
 use crate::common::{self, *};
@@ -61,16 +62,13 @@ impl RequestParser {
         let first_word = first_line
             .split_whitespace()
             .into_iter()
-            .collect::<Vec<&str>>()[0];
+            .collect::<Vec<&str>>()[0]
+            .to_string();
 
-        match first_word.to_lowercase().as_str() {
-            "get" => Method::GET,
-            "post" => Method::POST,
-            "option" => Method::OPTION,
-            "put" => Method::PUT,
-            "delete" => Method::DELETE,
-            _ => panic!("Wrong method"),
-        }
+        let method_from: Method = first_word.into();
+
+        method_from
+        
     }
 
     fn get_uri(req: &String) -> String {

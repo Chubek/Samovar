@@ -163,7 +163,7 @@ impl DirServer {
         replace
     }
 
-    fn crease_response_with_file(&self, uri: String) -> String {
+    fn crease_response_with_file(&self, uri: String) -> ResponseTextWrapper {
         let mut cache_clone = self.cache.clone();
 
         cache_clone.retain(|x| x.uri == uri);
@@ -180,7 +180,7 @@ impl DirServer {
         response_text
     } 
 
-    fn create_respons_with_index(&self) -> String {
+    fn create_respons_with_index(&self) -> ResponseTextWrapper {
         let list = self.create_file_list();
 
         let mut response = Response::<DummyResponseType>::new_string(list, 
@@ -193,7 +193,7 @@ impl DirServer {
         response_text
     }
 
-    pub fn compose(&self, uri: String) -> String {
+    pub fn compose(&self, uri: String) -> ResponseTextWrapper {
 
         match uri == self.path {
             true => self.create_respons_with_index(),
@@ -220,7 +220,7 @@ impl SingleFileServer {
         SingleFileServer(fc)
     }
 
-    fn create_response(&self) -> String {
+    fn compose(&self) -> ResponseTextWrapper {
         let SingleFileServer(fc) = self;
 
         let mut response = Response::<DummyResponseType>::new_string(
@@ -234,9 +234,4 @@ impl SingleFileServer {
         response_text
     }
 
-    fn compose(&self, uri: String) -> String{
-        let SingleFileServer(fc) = self;
-        
-        self.create_response()       
-    }
 }

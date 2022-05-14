@@ -1,5 +1,5 @@
 use core::panic;
-use std::marker::PhantomData;
+use std::{marker::PhantomData, net::TcpStream, io::{BufWriter, Write}, fmt::Display};
 use serde::Deserialize;
 use serde_json::{from_str, Value};
 
@@ -102,6 +102,33 @@ pub enum Method {
     OPTION,
     PUT,
     DELETE,
+    UNKNOWN,
+}
+
+impl From<String> for Method {
+    fn from(s: String) -> Self {
+        match s.to_lowercase().as_str() {
+            "get" => Method::GET,
+            "post" => Method::POST,
+            "option" => Method::OPTION,
+            "put" => Method::PUT,
+            "delete" => Method::DELETE,
+            _ => Method::UNKNOWN,
+         }
+    }
+}
+
+impl Into<String> for Method {
+    fn into(self) -> String {
+        match self {
+            Method::GET => "GET".to_string(),
+            Method::POST => "POST".to_string(),
+            Method::OPTION => "OPTION".to_string(),
+            Method::PUT => "PUT".to_string(),
+            Method::DELETE => "DELETE".to_string(),
+            Method::UNKNOWN => "UNKNOW".to_string(),
+        }
+    }
 }
 
 pub struct UserInfo {
@@ -336,3 +363,18 @@ impl ResponseCommon for DummyResponseType {
 
 
 
+pub struct ResponseTextWrapper(String);
+
+impl ResponseTextWrapper {
+    pub fn new(t: String) -> Self {
+        ResponseTextWrapper(t)
+    }
+
+    pub fn serve(&self, stream: &TcpStream) {
+        let ResponseTextWrapper(t) = self;
+
+        let mut writer = BufWriter::new(stream);
+
+        writer.write(t.as_bytes()).unwrap();
+    }
+}

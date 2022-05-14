@@ -1,5 +1,5 @@
 [package]
-name = "chuby-macros"
+name = "macrovar"
 version = "0.1.0"
 authors = ["Chubak Bidpaa <chubakbidpaa@gmail.com>"]
 
@@ -7,5 +7,6 @@ authors = ["Chubak Bidpaa <chubakbidpaa@gmail.com>"]
 proc-macro = true
 
 [dependencies]
-syn = "1.0"
+syn = { version = "1.0", features = ["full"] }
 quote = "1.0"
+

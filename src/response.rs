@@ -153,13 +153,13 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         h_joined
     }
 
-    pub fn compose(&mut self) -> String {
+    pub fn compose(&mut self) -> ResponseTextWrapper {
         let metadata = self.format_response_metadata();
         let headers_joined = self.make_header();
         let body = self.make_body();
 
         let ret = format!("{}\n{}\n\n{}", metadata, headers_joined, body);
 
-        ret
+        ResponseTextWrapper::new(ret)
     }
 }
