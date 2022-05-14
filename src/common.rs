@@ -8,7 +8,7 @@ pub struct Header {
     pub key: String,
     pub value: String,
 }
-#[derive(Clone)]
+#[derive(Clone, Hash, Eq, PartialEq)]
 pub enum MimeType {
     ApplicationJson,
     TextPlain,
@@ -56,7 +56,7 @@ impl RequestBody {
 
 }
 
-
+#[derive(Clone)]
 pub enum ResponseBodyType<'a, T: Clone + ResponseCommon + Deserialize<'a>> {
     Object(T),
     Str(String),
@@ -318,5 +318,18 @@ impl Into<String> for HttpStatus {
             HttpStatus::Http510NotExtended => "510 Not Extended".to_string(),
             HttpStatus::Http511NetworkAuthenticationRequried => "511 Network Authentication Required".to_string(),
         }
+    }
+}
+
+#[derive(Deserialize, Clone)]
+pub struct DummyResponseType;
+
+impl ResponseCommon for DummyResponseType {
+    fn parse_to_string(&self) -> String {
+        String::new()
+    }
+
+    fn get_length(&self) -> usize {
+        0usize
     }
 }

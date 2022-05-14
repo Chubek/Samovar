@@ -70,6 +70,7 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         }
     }
 
+
     fn format_date_add_header(&mut self) {
         let str_date = self.datetime.format("%a, %d %B %Y %T %Z").to_string();
         let header_date = Header {
@@ -83,7 +84,7 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
     fn format_content_add_header(&mut self) {
         let header_ctype = Header {
             key: "Content-Type".to_string(),
-            value: self.content_type.into(),
+            value: self.content_type.clone().into(),
         };
         let header_clength = Header {
             key: "Content-Length".to_string(),
@@ -124,7 +125,7 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
     }
 
     fn make_body(&self) -> String {
-        match self.body.content {
+        match self.body.content.clone() {
             ResponseBodyType::Object(obj) => obj.parse_to_string(),
             ResponseBodyType::Str(t) => t,
             ResponseBodyType::PhantomData(_) => "".to_string(),
@@ -137,7 +138,7 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         ret
     }
 
-    fn make_header(&self) -> String {
+    fn make_header(&mut self) -> String {
         self.format_date_add_header();
         self.format_content_add_header();
         self.sort_header_vec();
