@@ -3,19 +3,14 @@
 #[macro_use]
 extern crate lazy_static;
 
-
-mod transport;
-mod request;
 mod common;
-mod parser;
-mod response;
-mod staticserver;
 mod context;
 mod endpoint;
+mod parser;
+mod request;
+mod response;
 mod samovar;
+mod staticserver;
 
 #[cfg(test)]
-mod tests {    
-
-
-}
+mod tests {}

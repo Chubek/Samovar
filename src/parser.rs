@@ -1,10 +1,7 @@
-use serde::__private::de::IdentifierDeserializer;
-use serde::{Serialize, Deserialize};
-
-use crate::common::{self, *};
+use crate::common::*;
 use crate::request::Request;
-use std::net::TcpStream;
 use std::io::{BufReader, Read};
+use std::net::TcpStream;
 
 pub struct RequestParser;
 
@@ -28,16 +25,16 @@ impl RequestParser {
         let body = Self::get_body(&req, content_type.clone());
         let ip = stream.local_addr().unwrap();
 
-
-        Request {method, 
-            uri, 
-            headers, 
-            host, 
-            referer, 
-            content_type, 
-            scheme, 
-            uri_params, 
-            userinfo, 
+        Request {
+            method,
+            uri,
+            headers,
+            host,
+            referer,
+            content_type,
+            scheme,
+            uri_params,
+            userinfo,
             bare_uri,
             port,
             uri_paths,
@@ -45,7 +42,7 @@ impl RequestParser {
             ip,
             location,
         }
-    } 
+    }
 
     fn read_data(stream: &TcpStream) -> String {
         let mut reader = BufReader::new(stream);
@@ -71,7 +68,6 @@ impl RequestParser {
         let method_from: Method = first_word.into();
 
         method_from
-        
     }
 
     fn get_location(req: &String) -> String {
@@ -89,8 +85,6 @@ impl RequestParser {
     }
 
     fn get_headers(req: &String) -> Vec<Header> {
-        let length = req.clone().lines().count();
-
         let ret = req
             .lines()
             .into_iter()
@@ -170,12 +164,17 @@ impl RequestParser {
         let mut password = String::new();
 
         if uri_split.len() >= 2 {
-            let mut user_pass_str = "";
-            if uri_split[0].split("://").count() == 2 {
-                user_pass_str = uri_split[0].split("://").collect::<Vec<&str>>()[1];
-            } else {
-                user_pass_str = uri_split[0];
-            }
+            let user_pass_str = {
+                if uri_split[0].split("://").count() == 2 {
+                    let ret = uri_split[0].split("://").collect::<Vec<&str>>()[1].to_string();
+
+                    ret
+                } else {
+                    let ret = uri_split[0].to_string();
+
+                    ret
+                }
+            };
 
             let split_on_colon = user_pass_str.split(":").collect::<Vec<&str>>();
 
@@ -272,5 +271,3 @@ impl RequestParser {
         RequestBody::from_str(ret, ctype)
     }
 }
-
-

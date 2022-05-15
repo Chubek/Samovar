@@ -1,6 +1,5 @@
 use core::panic;
-use std::{marker::PhantomData, net::TcpStream, io::{BufWriter, Write}, fmt::Display, sync::{Arc, Mutex}};
-use std::ops::Deref;
+use std::{marker::PhantomData, net::TcpStream, io::{BufWriter, Write}, sync::Mutex};
 use serde::Deserialize;
 use serde_json::{from_str, Value};
 use std::collections::HashMap;

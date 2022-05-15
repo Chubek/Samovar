@@ -34,30 +34,6 @@ pub fn derive_trait_body_type(input: proc_macro::TokenStream) -> proc_macro::Tok
 }
 
 
-/*
-#[proc_macro_attribute]
-pub fn context(args: TokenStream, input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(args as AttributeArgs);
-    let input = parse_macro_input!(input as ItemStruct);
-
-    let 
-
-
-    let expanded = quote! {
-        let method_enum: crate::common::Method = fromat!("{}", method_string).to_lowercase().into();
-
-        let #struct_name = crate::endpoint::Endpoint::new(#uri, &#input, method_enum);
-
-        let mut endpoint_map = crate::common::ENDPOINT_MAP.lock().unwrap();
-
-        endpoint_map.insert(format!("{}", uri_rep), #struct_name);
-    };
-
-    proc_macro::TokenStream::from(expanded)
-
-}
-*/
-
 #[proc_macro_attribute]
 pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);
@@ -107,10 +83,9 @@ pub fn run_forever(input: TokenStream) -> TokenStream {
     let samovar = &input.attrs[0];
 
     let expanded = quote! {
-        use syn::Ident;
 
         fn run_forever(samovar: &Samovar) {
-            for stream in samovar.listener.incoming() {
+            for stream in <#samovar.listener.incoming>() {
                 match stream {
                     Ok(stream) => {
                         let request = Request::from(&stream);
@@ -125,7 +100,7 @@ pub fn run_forever(input: TokenStream) -> TokenStream {
 
                         let arc_stream = std::sync::Arc::new(stream);
                         let arc_request = std::sync::Arc::new(request);
-                        let arc_context = std::sync::Arc::new(samovar.context);
+                        let arc_context = std::sync::Arc::new(Mutex::new(samovar.context));
 
 
                         endpoint.serve_response(arc_stream, arc_context, arc_request)
@@ -136,7 +111,7 @@ pub fn run_forever(input: TokenStream) -> TokenStream {
                 }
             }
         }
-
+        <#samovar.construct_static_servers>();
         run_forever(#samovar);
     };
 

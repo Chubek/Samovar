@@ -1,15 +1,14 @@
-use std::{path::{Path, PathBuf}, any::Any, borrow::BorrowMut};
-use glob::glob;
-use crate::{common::*, context::ContextOp};
-use std::fs::read_to_string;
-use content_inspector::inspect;
-use std::collections::HashMap;
 use crate::response::Response;
+use crate::{common::*, context::ContextOp};
+use content_inspector::inspect;
+use glob::glob;
+use std::collections::HashMap;
+use std::fs::read_to_string;
+use std::path::{Path, PathBuf};
 
 lazy_static! {
     static ref HTML_SERVER: &'static str = r#"<html data-theme="coffee"><head><title>Chuby-HTTP FileServer --- Powered by Ritalin</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/daisyui@2.14.3/dist/full.css" rel="stylesheet" type="text/css"/><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMIhZ1+68QC5byJZw==" crossorigin="anonymous" referrerpolicy="no-referrer"/></head><body><div class="flex flex-col place-items-center m-5 border-opacity-50">REPLACE_ALL</div><div class="grid h-20 w-full m-3 card bg-base-200 rounded-box place-items-center footer"><div class="footer-center">Powered by Chuby-HTTPFind me on Github: <a href="https://github.com/chbuek">github.com/chubek</a></div></div></html>"#;
     static ref HTML_FILE: &'static str = r#" <div class="grid h-20 w-3/5 m-3 card bg-base-300 rounded-box place-items-center"> <span class="indicator-item badge badge-secondary">REPLACE_BADGE</span> <a class="link" href="REPLACE_HREF">REPLACE_NAME</a> </div>"#;
-    
     static ref BADGE_MAP: HashMap<MimeType, &'static str> = {
         let mut m = HashMap::<MimeType, &'static str>::new();
 
@@ -47,7 +46,7 @@ impl DirServer {
 
         for entry in glob(glob_path).expect("Failed to read glob pattern") {
             match entry {
-                Ok(path) =>  {
+                Ok(path) => {
                     let content = read_to_string(path.clone()).unwrap();
                     let is_text = inspect(content.clone().as_bytes()).is_text();
 
@@ -55,33 +54,45 @@ impl DirServer {
                     let is_index = Self::is_index(path.clone(), is_text.clone());
                     let uri = Self::get_uri(path.clone());
 
-                    let fc = FileCache { path, mimetype, content, uri, is_index };
+                    let fc = FileCache {
+                        path,
+                        mimetype,
+                        content,
+                        uri,
+                        is_index,
+                    };
 
                     cache.push(fc);
 
                     has_index = is_index;
-
-                },
+                }
                 Err(e) => println!("{:?}", e),
             }
         }
 
         let mut path = Path::new(glob_path)
-                            .parent()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .to_string();
+            .parent()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
 
         path = path.replace("/*", "");
         path = path.replace("*/", "");
         path = path.replace("*", "");
 
         match has_index {
-            true => DirServer { cache, path, serve_index },                 
-            false => DirServer { cache, path, serve_index: false },
-        }        
-        
+            true => DirServer {
+                cache,
+                path,
+                serve_index,
+            },
+            false => DirServer {
+                cache,
+                path,
+                serve_index: false,
+            },
+        }
     }
 
     pub fn get_path(&self) -> String {
@@ -97,26 +108,20 @@ impl DirServer {
                         "css" => MimeType::TextCSS,
                         "json" => MimeType::ApplicationJson,
                         "html" => MimeType::TextHtml,
-                        _ => {
-                            match is_text {
-                                true => MimeType::TextPlain,
-                                false => MimeType::ApplicationOctetStream
-                            }
-                        }
+                        _ => match is_text {
+                            true => MimeType::TextPlain,
+                            false => MimeType::ApplicationOctetStream,
+                        },
                     }
                 } else {
                     panic!("Error parsing osstr")
                 }
-            },
-            None => {
-                match is_text {
-                    true => MimeType::TextPlain,
-                    false => MimeType::ApplicationOctetStream
-                }
+            }
+            None => match is_text {
+                true => MimeType::TextPlain,
+                false => MimeType::ApplicationOctetStream,
             },
         }
-                
-     
     }
 
     fn is_index(path: PathBuf, is_text: bool) -> bool {
@@ -125,17 +130,17 @@ impl DirServer {
                 if let Some(name_str) = fname.to_str() {
                     if name_str == "index" {
                         if is_text {
-                            return true
+                            return true;
                         } else {
-                            return false
+                            return false;
                         }
                     } else {
-                        return false
+                        return false;
                     }
                 } else {
-                    return false
+                    return false;
                 }
-            },
+            }
             None => todo!(),
         }
     }
@@ -147,12 +152,11 @@ impl DirServer {
         let replaced = relative_path.replace("\\", "/");
 
         format!("{}{}", replaced, fname)
-
     }
 
     fn create_file_item(item: &FileCache) -> String {
         let copy_str = HTML_FILE.clone().to_string();
-        
+
         let fname = item.path.file_name().unwrap().to_str().unwrap();
         let badge_color = BADGE_MAP[&item.mimetype];
 
@@ -164,11 +168,12 @@ impl DirServer {
     }
 
     fn create_file_list(&self) -> String {
-        let files_joined = self.cache
-                                                .iter()
-                                                .map(|x| Self::create_file_item(x))
-                                                .collect::<Vec<String>>()
-                                                .join(r#"<div class="divider"></div>"#);
+        let files_joined = self
+            .cache
+            .iter()
+            .map(|x| Self::create_file_item(x))
+            .collect::<Vec<String>>()
+            .join(r#"<div class="divider"></div>"#);
         let html_temp_copy = HTML_SERVER.clone().to_string();
 
         let replace = html_temp_copy.replace("REPLACE_ALL", &files_joined);
@@ -183,25 +188,27 @@ impl DirServer {
 
         let item = &cache_clone[0];
 
-        let mut response = Response::<DummyResponseType>::new_string(item.content.clone(), 
+        let mut response = Response::<DummyResponseType>::new_string(
+            item.content.clone(),
             item.mimetype.clone(),
-             HttpStatus::Http200Ok);
+            HttpStatus::Http200Ok,
+        );
 
-        
         let response_text = response.compose();
 
         response_text
-    } 
+    }
 
     fn create_respons_with_index(&self) -> ResponseTextWrapper {
         let list = self.create_file_list();
 
-        let mut response = Response::<DummyResponseType>::new_string(list, 
-                MimeType::TextHtml,
-             HttpStatus::Http200Ok);
+        let mut response = Response::<DummyResponseType>::new_string(
+            list,
+            MimeType::TextHtml,
+            HttpStatus::Http200Ok,
+        );
 
         let response_text = response.compose();
-
 
         response_text
     }
@@ -213,16 +220,15 @@ impl DirServer {
 
         let item = &cache_clone[0];
 
-        let mut response = Response::<DummyResponseType>::new_string(item.content.clone(), 
+        let mut response = Response::<DummyResponseType>::new_string(
+            item.content.clone(),
             item.mimetype.clone(),
-             HttpStatus::Http200Ok);
+            HttpStatus::Http200Ok,
+        );
 
-        
         let response_text = response.compose();
 
         response_text
-        
-
     }
 
     pub fn compose_name(&self) -> String {
@@ -238,20 +244,15 @@ impl DirServer {
     }
 
     pub fn compose(&self, uri: String) -> ResponseTextWrapper {
-        
         match uri == self.path {
-            true => {
-                match self.serve_index {
-                    true => self.create_response_with_index_file(),
-                    false => self.create_respons_with_index()
-                }                 
+            true => match self.serve_index {
+                true => self.create_response_with_index_file(),
+                false => self.create_respons_with_index(),
             },
             false => self.crease_response_with_file(uri),
-        }       
+        }
     }
-
 }
-
 
 pub struct SingleFileServer(FileCache);
 
@@ -263,8 +264,13 @@ impl SingleFileServer {
         let is_index = false;
         let uri = DirServer::get_uri(path.clone());
 
-
-        let fc = FileCache {content, mimetype, uri, is_index, path};
+        let fc = FileCache {
+            content,
+            mimetype,
+            uri,
+            is_index,
+            path,
+        };
 
         SingleFileServer(fc)
     }
@@ -275,16 +281,16 @@ impl SingleFileServer {
         let mut response = Response::<DummyResponseType>::new_string(
             fc.content.clone(),
             fc.mimetype.clone(),
-            HttpStatus::Http200Ok
+            HttpStatus::Http200Ok,
         );
 
         let response_text = response.compose();
 
         response_text
     }
-
 }
 
+#[derive(Clone)]
 pub enum StaticServerType {
     ServeWithIndex(String),
     ServeWithoutIndex(String),

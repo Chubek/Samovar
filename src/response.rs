@@ -1,8 +1,6 @@
 use crate::common::*;
-use chrono::{Date, DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use std::io::BufWriter;
-use std::net::TcpStream;
+use chrono::{DateTime, Utc};
+use serde::Deserialize;
 
 pub struct Response<'a, T: Clone + ResponseCommon + Deserialize<'a>> {
     headers: Vec<Header>,
@@ -69,7 +67,6 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
             datetime,
         }
     }
-
 
     fn format_date_add_header(&mut self) {
         let str_date = self.datetime.format("%a, %d %B %Y %T %Z").to_string();
@@ -142,7 +139,6 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         self.format_date_add_header();
         self.format_content_add_header();
         self.sort_header_vec();
-        
 
         let h_joined = self
             .headers

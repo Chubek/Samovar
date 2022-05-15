@@ -20,7 +20,6 @@ pub struct Request {
     pub location: String,
 }
 
-
 impl Request {
     pub fn from(s: &TcpStream) -> Self {
         let req = RequestParser::parse_and_create(s);
@@ -33,5 +32,4 @@ impl Request {
 
         name
     }
-
 }
