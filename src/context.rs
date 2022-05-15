@@ -1,11 +1,9 @@
-use std::any::Any;
+use std::{any::Any, sync::{Mutex, Arc}, collections::HashMap, pin::Pin, rc::Rc};
 
-pub struct Context {
-    item: &'static (dyn Any + Sync),
+
+pub trait ContextOp<R, Args> {
+    fn op(&self, args: Args) -> R;
 }
 
-impl Context {
-    pub fn new(item: &'static  (dyn Any + Sync)) -> Self {
-        Context { item }
-    } 
-}
+
+pub type ContextType = Arc<HashMap<String, Arc<Mutex<dyn Any + Send>>>>;

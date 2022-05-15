@@ -34,6 +34,29 @@ pub fn derive_trait_body_type(input: proc_macro::TokenStream) -> proc_macro::Tok
 }
 
 
+/*
+#[proc_macro_attribute]
+pub fn context(args: TokenStream, input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(args as AttributeArgs);
+    let input = parse_macro_input!(input as ItemStruct);
+
+    let 
+
+
+    let expanded = quote! {
+        let method_enum: crate::common::Method = fromat!("{}", method_string).to_lowercase().into();
+
+        let #struct_name = crate::endpoint::Endpoint::new(#uri, &#input, method_enum);
+
+        let mut endpoint_map = crate::common::ENDPOINT_MAP.lock().unwrap();
+
+        endpoint_map.insert(format!("{}", uri_rep), #struct_name);
+    };
+
+    proc_macro::TokenStream::from(expanded)
+
+}
+*/
 
 #[proc_macro_attribute]
 pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {

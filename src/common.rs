@@ -387,5 +387,5 @@ lazy_static! {
         let m = HashMap::<String, Endpoint>::new();
     
         Mutex::new(m)
-    };
+    };  
 }

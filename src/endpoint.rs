@@ -2,20 +2,20 @@ use std::net::TcpStream;
 use std::ops::Deref;
 use std::sync::Arc;
 use std::thread;
-
-use crate::{context::Context, common::ResponseTextWrapper, request::Request};
+use crate::context::ContextType;
+use crate::{common::ResponseTextWrapper, request::Request};
 use crate::common::Method;
 
 pub struct Endpoint {
     uri: String,
-    callable: &'static (dyn Fn(&Request, &Vec<Context>) -> ResponseTextWrapper + Sync),
+    callable: &'static (dyn Fn(&Request, &ContextType) -> ResponseTextWrapper + Sync),
     method: Method,
 }
 
 
 impl Endpoint {
     pub fn new(uri: String, 
-                callable: &'static (dyn Fn(&Request, &Vec<Context>) -> ResponseTextWrapper + Sync),
+                callable: &'static (dyn Fn(&Request, &ContextType) -> ResponseTextWrapper + Sync),
                 method: Method) -> Self 
     {
 
@@ -24,7 +24,7 @@ impl Endpoint {
     }
 
 
-    pub fn serve_response(&self, stream: Arc<TcpStream>, context: Arc<Vec<Context>>, request: Arc<Request>) {
+    pub fn serve_response(&self, stream: Arc<TcpStream>, context: Arc<ContextType>, request: Arc<Request>) {
         let callable_arc = Arc::new(self.callable);
         
         thread::spawn(move || {

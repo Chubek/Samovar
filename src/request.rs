@@ -28,4 +28,10 @@ impl Request {
         req
     }
 
+    pub fn compose_name_for_fs(&self) -> String {
+        let name = format!("request_server_{}", self.uri.replace("/", "-"));
+
+        name
+    }
+
 }
