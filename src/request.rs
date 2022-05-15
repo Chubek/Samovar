@@ -17,6 +17,7 @@ pub struct Request {
     pub referer: String,
     pub content_type: MimeType,
     pub ip: SocketAddr,
+    pub location: String,
 }
 
 

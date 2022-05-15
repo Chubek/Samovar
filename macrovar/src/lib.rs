@@ -5,8 +5,8 @@ extern crate syn;
 use std::iter::FromIterator;
 
 use proc_macro::*;
-use quote::quote;
-use syn::{parse_macro_input, DeriveInput, AttributeArgs, ItemFn};
+use quote::{quote, format_ident};
+use syn::{parse_macro_input, DeriveInput, AttributeArgs, ItemFn ,ItemMacro};
 
 #[proc_macro_derive(ResponseCommon)]
 pub fn derive_trait_body_type(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -62,15 +62,58 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let uri_rep = uri_fin.replace("/", "_");
     
-    let struct_name = format!("endpoint_{}_{}", method_string.clone(), uri_rep.clone());
+    let struct_name = format_ident!("endpoint_{}_{}", method_string.clone(), uri_rep.clone());
 
 
     let expanded = quote! {
-        let method_enum: Method = String::from(#method_string).to_lowercase().into();
+        let method_enum: Method = fromat!("{}", method_string).to_lowercase().into();
 
-        let #struct_name = Endpoint::new(#uri, #input, method_enum);
+        let #struct_name = Endpoint::new(#uri, &#input, method_enum);
+
+        crate::common::ENDPOINT_MAP.insert(format!("{}", uri_rep), #struct_name);
     };
 
     proc_macro::TokenStream::from(expanded)
 
 }
+
+#[proc_macro]
+pub fn run_forever(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as ItemMacro);
+
+    let samovar = &input.attrs[0];
+
+    let expanded = quote! {
+        use syn::Ident;
+
+        fn run_forever(samovar: &Samovar) {
+            for stream in samovar.listener.incoming() {
+                match stream {
+                    Ok(stream) => {
+                        let request = Request::from(&stream);
+
+                        let uri_clone  = request.uri.clone();
+
+                        let uri_replace = uri_clone.replace("/", "_");
+
+                        let endpoint = &crate::common::ENDPOINT_MAP[uri_rep];
+
+                        let arc_stream = std::sync::Arc::new(stream);
+                        let arc_request = std::sync::Arc::new(request);
+                        let arc_context = std::sync::Arc::new(samovar.context);
+
+
+                        endpoint.serve_response(arc_stream, arc_context, arc_request)
+
+
+                    },
+                    None => println!("No stream")
+                }
+            }
+        }
+    };
+
+    proc_macro::TokenStream::from(expanded)
+
+}
+

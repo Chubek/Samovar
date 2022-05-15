@@ -13,19 +13,21 @@ impl RequestParser {
         let req = Self::read_data(stream);
 
         let method = Self::get_method(&req);
-        let uri = Self::get_uri(&req);
+        let location = Self::get_location(&req);
+        let uri = Self::get_uri(&location);
         let headers = Self::get_headers(&req);
         let host = Self::get_host(&headers);
         let referer = Self::get_referer(&headers);
         let content_type = Self::get_ctype(&headers);
-        let scheme = Self::get_scheme(&uri);
-        let uri_params = Self::get_url_params(&uri);
-        let userinfo = Self::get_userpass(&uri);
-        let bare_uri = Self::get_bare_url(&uri);
-        let port = Self::get_port(&uri);
-        let uri_paths = Self::get_uri_paths(&uri);
+        let scheme = Self::get_scheme(&location);
+        let uri_params = Self::get_url_params(&location);
+        let userinfo = Self::get_userpass(&location);
+        let bare_uri = Self::get_bare_url(&location);
+        let port = Self::get_port(&location);
+        let uri_paths = Self::get_uri_paths(&location);
         let body = Self::get_body(&req, content_type.clone());
         let ip = stream.local_addr().unwrap();
+
 
         Request {method, 
             uri, 
@@ -41,6 +43,7 @@ impl RequestParser {
             uri_paths,
             body,
             ip,
+            location,
         }
     } 
 
@@ -71,7 +74,7 @@ impl RequestParser {
         
     }
 
-    fn get_uri(req: &String) -> String {
+    fn get_location(req: &String) -> String {
         let first_line = req.lines().into_iter().collect::<Vec<&str>>()[0];
 
         match first_line
@@ -148,8 +151,8 @@ impl RequestParser {
         }
     }
 
-    fn get_scheme(uri: &String) -> String {
-        let uri_split = uri.split("://").collect::<Vec<&str>>();
+    fn get_scheme(location: &String) -> String {
+        let uri_split = location.split("://").collect::<Vec<&str>>();
 
         let mut scheme = String::from("http");
 
@@ -160,8 +163,8 @@ impl RequestParser {
         scheme
     }
 
-    fn get_userpass(uri: &String) -> UserInfo {
-        let uri_split = uri.split("@").collect::<Vec<&str>>();
+    fn get_userpass(location: &String) -> UserInfo {
+        let uri_split = location.split("@").collect::<Vec<&str>>();
 
         let mut username = String::new();
         let mut password = String::new();
@@ -183,8 +186,8 @@ impl RequestParser {
         UserInfo { username, password }
     }
 
-    fn get_port(uri: &String) -> u32 {
-        let last_str = uri.split(":").into_iter().last();
+    fn get_port(location: &String) -> u32 {
+        let last_str = location.split(":").into_iter().last();
 
         match last_str {
             Some(last) => match last.parse::<u32>() {
@@ -195,8 +198,8 @@ impl RequestParser {
         }
     }
 
-    fn get_url_params(uri: &String) -> Vec<Params> {
-        let uri_split = uri.split("?q=").collect::<Vec<&str>>();
+    fn get_url_params(location: &String) -> Vec<Params> {
+        let uri_split = location.split("?q=").collect::<Vec<&str>>();
 
         let mut ret: Vec<Params> = vec![];
 
@@ -220,8 +223,8 @@ impl RequestParser {
         ret
     }
 
-    fn get_bare_url(uri: &String) -> String {
-        let uri_split = uri.split("?q=").into_iter().collect::<Vec<&str>>();
+    fn get_bare_url(location: &String) -> String {
+        let uri_split = location.split("?q=").into_iter().collect::<Vec<&str>>();
 
         uri_split[0].to_string()
     }
@@ -243,6 +246,18 @@ impl RequestParser {
         ret
     }
 
+    fn get_uri(location: &String) -> String {
+        let mut uri_split = location.split("/").collect::<Vec<&str>>();
+
+        uri_split.remove(0);
+
+        let uri = uri_split.join("/");
+
+        let uri_no_params = uri.split("?q=").next().unwrap().to_string();
+
+        uri_no_params
+    }
+
     fn get_body(req: &String, ctype: MimeType) -> RequestBody {
         let req_split = req.split("\n\n");
 
@@ -259,43 +274,3 @@ impl RequestParser {
 }
 
 
-pub struct UrlParser;
-
-impl UrlParser {
-    fn get_first_line(d: String) -> String {
-        let first_line = &d.lines()
-                    .into_iter()
-                    .enumerate()
-                    .filter(|&(i, x)| i == 0)
-                    .map(|(_, x)| x.to_string())
-                    .collect::<Vec<String>>()[0];
-
-        first_line.clone()
-    }
-    
-    fn get_second_word(d: String) -> String {
-        let fline = Self::get_first_line(d);
-
-        let second_word = &fline.split_whitespace()
-                          .into_iter()
-                          .enumerate()
-                          .filter(|&(i, x)| i == 1)
-                          .map(|(_, x)| x.to_string())
-                         .collect::<Vec<String>>()[0];
-
-        second_word.clone()
-    }
-
-    fn parse_url(d: String) -> String {
-        let url = Self::get_second_word(d);
-
-        let mut uri_split = url.split("/").collect::<Vec<&str>>();
-
-        uri_split.remove(0);
-
-        let uri = uri_split.join("/");
-
-
-        uri
-    }
-}

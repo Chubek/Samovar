@@ -12,6 +12,7 @@ mod response;
 mod staticserver;
 mod context;
 mod endpoint;
+mod samovar;
 
 #[cfg(test)]
 mod tests {    

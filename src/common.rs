@@ -3,7 +3,9 @@ use std::{marker::PhantomData, net::TcpStream, io::{BufWriter, Write}, fmt::Disp
 use std::ops::Deref;
 use serde::Deserialize;
 use serde_json::{from_str, Value};
+use std::collections::HashMap;
 
+use crate::endpoint::Endpoint;
 
 pub struct Header {
     pub key: String,
@@ -379,3 +381,5 @@ impl ResponseTextWrapper {
         writer.write(t.as_bytes()).unwrap();
     }
 }
+
+static mut ENDPOINT_MAP: HashMap<String, Endpoint> = HashMap::new();
