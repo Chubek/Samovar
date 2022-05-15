@@ -15,9 +15,7 @@ pub fn derive_trait_body_type(input: proc_macro::TokenStream) -> proc_macro::Tok
     let name = input.ident;
 
     let expanded = quote! {
-        use chuby_http::common::ResponseCommon;
-
-        impl ResponseCommon for #name {
+        impl crate::common::ResponseCommon for #name {
             fn get_length(&self) -> usize {
                 let self_str = serde_json::to_string(&self).unwrap();
 
@@ -66,9 +64,9 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
 
     let expanded = quote! {
-        let method_enum: Method = fromat!("{}", method_string).to_lowercase().into();
+        let method_enum: crate::common::Method = fromat!("{}", method_string).to_lowercase().into();
 
-        let #struct_name = Endpoint::new(#uri, &#input, method_enum);
+        let #struct_name = crate::endpoint::Endpoint::new(#uri, &#input, method_enum);
 
         let mut endpoint_map = crate::common::ENDPOINT_MAP.lock().unwrap();
 
