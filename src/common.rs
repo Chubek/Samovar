@@ -1,5 +1,5 @@
 use core::panic;
-use std::{marker::PhantomData, net::TcpStream, io::{BufWriter, Write}, fmt::Display, sync::Arc};
+use std::{marker::PhantomData, net::TcpStream, io::{BufWriter, Write}, fmt::Display, sync::{Arc, Mutex}};
 use std::ops::Deref;
 use serde::Deserialize;
 use serde_json::{from_str, Value};
@@ -382,4 +382,10 @@ impl ResponseTextWrapper {
     }
 }
 
-static mut ENDPOINT_MAP: HashMap<String, Endpoint> = HashMap::new();
+lazy_static! {
+    pub static ref ENDPOINT_MAP: Mutex<HashMap<String, Endpoint>> = {
+        let m = HashMap::<String, Endpoint>::new();
+    
+        Mutex::new(m)
+    };
+}

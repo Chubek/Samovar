@@ -70,7 +70,9 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
         let #struct_name = Endpoint::new(#uri, &#input, method_enum);
 
-        crate::common::ENDPOINT_MAP.insert(format!("{}", uri_rep), #struct_name);
+        let mut endpoint_map = crate::common::ENDPOINT_MAP.lock().unwrap();
+
+        endpoint_map.insert(format!("{}", uri_rep), #struct_name);
     };
 
     proc_macro::TokenStream::from(expanded)
@@ -96,7 +98,9 @@ pub fn run_forever(input: TokenStream) -> TokenStream {
 
                         let uri_replace = uri_clone.replace("/", "_");
 
-                        let endpoint = &crate::common::ENDPOINT_MAP[uri_rep];
+                        let endpoint_map = crate::common::ENDPOINT_MAP.lock().unwrap();
+
+                        let endpoint = &endpoint_map[uri_rep];
 
                         let arc_stream = std::sync::Arc::new(stream);
                         let arc_request = std::sync::Arc::new(request);
@@ -111,6 +115,8 @@ pub fn run_forever(input: TokenStream) -> TokenStream {
                 }
             }
         }
+
+        run_forever(#samovar);
     };
 
     proc_macro::TokenStream::from(expanded)
