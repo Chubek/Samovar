@@ -1,0 +1,13 @@
+[package]
+name = "chanovar"
+version = "0.1.0"
+edition = "2021"
+authors = ["Chubak Bidpaa <chubakbidpaa@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "A text board system made with Samovar"
+repository = "https://github.com/Chubek/Samovar"
+keywords = ["web", "http", "framework"]
+
+[dependencies]
+macrovar = { path = "../macrovar" }
+samovar = { path = "../samovar" }
