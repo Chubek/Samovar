@@ -1,9 +1,7 @@
+use std::collections::HashMap;
 use std::fs::File;
-use std::io::{Write, Read};
+use std::io::{Read, Write};
 use std::path::PathBuf;
-use std::{collections::HashMap};
-
-
 
 pub struct MemorySession {
     items: HashMap<String, String>,
@@ -13,7 +11,7 @@ impl MemorySession {
     pub fn new() -> Self {
         let items = HashMap::<String, String>::new();
 
-        MemorySession {items}
+        MemorySession { items }
     }
 
     pub fn insert(&mut self, key: String, value: String) {
@@ -37,8 +35,8 @@ impl PhysicalSession {
     pub fn new(fpath: String) -> Self {
         let filepath = PathBuf::from(fpath.as_str());
         let items = HashMap::<String, String>::new();
-    
-        PhysicalSession {items, filepath}
+
+        PhysicalSession { items, filepath }
     }
 
     pub fn insert(&mut self, key: String, value: String) {
@@ -55,9 +53,9 @@ impl PhysicalSession {
 
     fn write(&self) {
         let mut f = File::create(&self.filepath).unwrap();
-        let contents = self.compose();                
+        let contents = self.compose();
         f.write_all(contents.as_bytes()).unwrap();
-        f.sync_all().unwrap();                
+        f.sync_all().unwrap();
     }
 
     pub fn initiate(&mut self) {
@@ -70,8 +68,7 @@ impl PhysicalSession {
                 f.read_to_string(&mut contents).unwrap();
 
                 self.decompose(contents)
-                
-            },
+            }
             false => {
                 let prefix = self.filepath.parent().unwrap();
 
@@ -80,7 +77,7 @@ impl PhysicalSession {
                 }
 
                 File::create(&self.filepath).unwrap();
-            },
+            }
         }
     }
 
@@ -100,7 +97,7 @@ impl PhysicalSession {
 
     fn decompose(&mut self, str: String) {
         let lines = str.lines().collect::<Vec<&str>>();
-        
+
         for l in lines {
             let mut split = l.split(" +/+/+ ");
 

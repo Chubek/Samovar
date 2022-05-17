@@ -1,6 +1,6 @@
 use crate::common::*;
 use crate::request::Request;
-use std::io::{BufReader, BufRead};
+use std::io::{BufRead, BufReader};
 use std::net::TcpStream;
 
 pub struct RequestParser;
@@ -43,9 +43,8 @@ impl RequestParser {
             referer,
             content_type,
             ip,
-            location
+            location,
         )
-
     }
 
     fn read_data(stream: &TcpStream) -> String {
@@ -63,7 +62,6 @@ impl RequestParser {
     fn get_method(req: &String) -> Method {
         let first_line = req.lines().into_iter().collect::<Vec<&str>>()[0];
 
-        
         let first_word = first_line
             .split_whitespace()
             .into_iter()
@@ -92,7 +90,6 @@ impl RequestParser {
     fn get_headers(req: &String) -> Vec<Header> {
         let cchar = String::from_utf8(vec![13u8, 10u8, 13u8, 10u8]).unwrap();
 
-
         let ret: Vec<Header> = req
             .split(cchar.as_str())
             .next()
@@ -103,20 +100,17 @@ impl RequestParser {
             .filter(|&(i, l)| i >= 1 && l.split(": ").count() == 2)
             .map(|(_, l)| {
                 let l_split = l.split(": ").collect::<Vec<&str>>();
-                
+
                 let key = l_split[0].to_string().to_lowercase();
                 let value = l_split[1].to_string();
-                
+
                 println!("Header: {} -> {}", &key, &value);
 
-                Header {
-                    key,
-                    value,
-                }
+                Header { key, value }
             })
             .collect();
 
-        println!("Got {} headers", &ret.len());        
+        println!("Got {} headers", &ret.len());
 
         ret
     }
@@ -273,7 +267,7 @@ impl RequestParser {
         let uri_no_params = uri.split("?q=").next().unwrap().to_string();
 
         if uri_no_params.len() == 0 {
-            return "/".to_string()
+            return "/".to_string();
         }
 
         uri_no_params.to_lowercase()
@@ -282,7 +276,7 @@ impl RequestParser {
     fn get_body(req: &String, ctype: MimeType) -> RequestBody {
         let cchar_vec = String::from_utf8(vec![13u8, 10u8, 13u8, 10u8]).unwrap();
 
-        let req_split = req.split(cchar_vec.as_str());        
+        let req_split = req.split(cchar_vec.as_str());
 
         let mut ret = String::new();
 

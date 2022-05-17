@@ -17,7 +17,11 @@ impl Endpoint {
         callable: &'static (dyn Fn(&Request) -> ResponseTextWrapper + Sync),
         method_string: String,
     ) -> Self {
-        println!("Serving endpoint at {} with method {}", &uri, &method_string.to_uppercase());
+        println!(
+            "Serving endpoint at {} with method {}",
+            &uri,
+            &method_string.to_uppercase()
+        );
 
         let method: Method = method_string.into();
 
@@ -37,7 +41,6 @@ impl Endpoint {
 
         println!("Serving endpoint at {} with method {}", &uri, method_str);
 
-
         Endpoint {
             uri,
             callable,
@@ -45,11 +48,7 @@ impl Endpoint {
         }
     }
 
-    pub fn serve_response(
-        &self,
-        stream: Mutex<TcpStream>,
-        request: Arc<Request>,
-    ) {
+    pub fn serve_response(&self, stream: Mutex<TcpStream>, request: Arc<Request>) {
         let callable_arc = Arc::new(self.callable);
 
         thread::spawn(move || {

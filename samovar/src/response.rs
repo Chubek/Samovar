@@ -142,7 +142,6 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
 
         let cchar_vec = String::from_utf8(vec![13u8, 10u8]).unwrap();
 
-
         let h_joined = self
             .headers
             .iter()
@@ -160,8 +159,10 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         let cchar_vec = String::from_utf8(vec![13u8, 10u8]).unwrap();
         let cchar_vec_double = String::from_utf8(vec![13u8, 10u8, 13u8, 10u8]).unwrap();
 
-
-        let ret = format!("{}{}{}{}{}", metadata, cchar_vec, headers_joined, cchar_vec_double, body);
+        let ret = format!(
+            "{}{}{}{}{}",
+            metadata, cchar_vec, headers_joined, cchar_vec_double, body
+        );
 
         ResponseTextWrapper::new(ret)
     }

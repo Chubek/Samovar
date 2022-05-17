@@ -27,7 +27,8 @@ impl Request {
         req
     }
 
-    pub fn new(headers: Vec<Header>,
+    pub fn new(
+        headers: Vec<Header>,
         body: RequestBody,
         uri: String,
         uri_params: Vec<Params>,
@@ -41,25 +42,26 @@ impl Request {
         referer: String,
         content_type: MimeType,
         ip: SocketAddr,
-        location: String) -> Self {
-            Request {
-                method,
-                uri,
-                headers,
-                host,
-                referer,
-                content_type,
-                scheme,
-                uri_params,
-                userinfo,
-                bare_uri,
-                port,
-                uri_paths,
-                body,
-                ip,
-                location,
-            }
+        location: String,
+    ) -> Self {
+        Request {
+            method,
+            uri,
+            headers,
+            host,
+            referer,
+            content_type,
+            scheme,
+            uri_params,
+            userinfo,
+            bare_uri,
+            port,
+            uri_paths,
+            body,
+            ip,
+            location,
         }
+    }
 
     pub fn compose_name_for_fs(&self) -> String {
         let name = format!("dir_server_{}", &self.uri.replace("/", "-"));
@@ -80,8 +82,7 @@ impl Request {
             if &ep_name_chars.last().unwrap() == &&'/' {
                 ep_name_chars.pop();
             }
-
-        }   
+        }
 
         let ep_name = String::from_iter(ep_name_chars.iter());
 
@@ -94,22 +95,22 @@ impl Request {
 
     pub fn get_header(&self, key: &str) -> Option<String> {
         let mut ret: Option<String> = None;
-        
+
         for h in &self.headers {
             if h.key == key.to_lowercase() {
                 ret = Some(h.value.clone());
-            }   
+            }
         }
 
         ret
     }
 
     pub fn get_method(&self) -> Method {
-        self.method.clone()    
+        self.method.clone()
     }
 
     pub fn get_host(&self) -> String {
-        self.host.clone()    
+        self.host.clone()
     }
 
     pub fn get_ip(&self) -> SocketAddr {
@@ -155,7 +156,6 @@ impl Request {
     pub fn get_content_type(&self) -> MimeType {
         self.content_type.clone()
     }
-
 
     pub fn get_all_headers(&self) -> Vec<Header> {
         self.headers.clone()

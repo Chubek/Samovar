@@ -1,9 +1,9 @@
+use crate::common::*;
 use crate::response::Response;
-use crate::{common::*};
 use content_inspector::inspect;
 use glob::glob;
 use std::collections::HashMap;
-use std::fs::{read_to_string};
+use std::fs::read_to_string;
 use std::path::PathBuf;
 
 lazy_static! {
@@ -35,7 +35,7 @@ struct FileCache {
 pub struct DirServer {
     path_uri: String,
     cache: Vec<FileCache>,
-    index_file: Option<String>
+    index_file: Option<String>,
 }
 
 impl DirServer {
@@ -59,7 +59,7 @@ impl DirServer {
         for entry in glob(glob_path).expect("Failed to read glob pattern") {
             match entry {
                 Ok(path) => {
-                     println!("Found file {}", path.display());
+                    println!("Found file {}", path.display());
 
                     let content = read_to_string(path.clone()).unwrap();
                     let is_text = inspect(content.clone().as_bytes()).is_text();
@@ -75,11 +75,10 @@ impl DirServer {
                     };
 
                     cache.push(fc);
-
                 }
                 Err(e) => println!("{:?}", e),
             }
-        }    
+        }
 
         println!("Found {} files in this glob", &cache.len());
 
@@ -213,11 +212,8 @@ impl DirServer {
         let fc_str = fc_index.content.clone();
         let fc_type = fc_index.mimetype.clone();
 
-        let mut response = Response::<DummyResponseType>::new_string(
-            fc_str,
-            fc_type,
-            HttpStatus::Http200Ok,
-        );
+        let mut response =
+            Response::<DummyResponseType>::new_string(fc_str, fc_type, HttpStatus::Http200Ok);
 
         let response_text = response.compose();
 
@@ -235,12 +231,10 @@ impl DirServer {
             if fname == index_name {
                 ret = fc
             }
-
         }
 
         ret
     }
-    
 
     pub fn compose_name(&self) -> String {
         let name = format!("dir_server_{}", self.path_uri.replace("/", "-"));
@@ -259,7 +253,6 @@ impl DirServer {
             "No files in this glob".to_string(),
             MimeType::TextPlain,
             HttpStatus::Http404NotFound,
-        
         );
 
         resp.compose()
@@ -270,18 +263,16 @@ impl DirServer {
 
         if self.cache.len() == 0 {
             println!("Empty glob path");
-            return self.respond_empty()
+            return self.respond_empty();
         }
 
         match uri == self.path_uri {
             true => match self.index_file {
-                Some(_) => {
-                    self.create_response_with_index_file()
-                },
+                Some(_) => self.create_response_with_index_file(),
                 None => {
                     println!("Serve index is false, serving with file index...");
                     self.create_response_with_index()
-                },
+                }
             },
             false => self.crease_response_with_file(uri),
         }

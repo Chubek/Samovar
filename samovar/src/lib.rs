@@ -9,8 +9,8 @@ pub mod parser;
 pub mod request;
 pub mod response;
 pub mod samovar;
-pub mod staticserver;
 pub mod session;
+pub mod staticserver;
 
 #[cfg(test)]
 mod tests {}

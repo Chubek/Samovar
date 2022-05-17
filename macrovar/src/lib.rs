@@ -2,7 +2,7 @@
 
 #[macro_use]
 extern crate lazy_static;
-extern  crate random_string;
+extern crate random_string;
 
 extern crate proc_macro;
 extern crate quote;
@@ -12,13 +12,12 @@ use std::collections::HashMap;
 use std::ops::Add;
 use std::sync::Mutex;
 
-
-use quote::{quote, format_ident};
-use syn::{parse_macro_input, DeriveInput, AttributeArgs, ItemFn};
 use proc_macro::TokenStream;
 use quote::quote_spanned;
+use quote::{format_ident, quote};
 use syn::spanned::Spanned;
 use syn::Ident;
+use syn::{parse_macro_input, AttributeArgs, DeriveInput, ItemFn};
 
 struct IndexHolder {
     index: u32,
@@ -26,12 +25,12 @@ struct IndexHolder {
 
 impl IndexHolder {
     fn new() -> Self {
-        IndexHolder {index: 0}
+        IndexHolder { index: 0 }
     }
 
     fn add(&mut self) {
         self.index = self.index.add(1);
-    } 
+    }
 
     fn get(&self) -> u32 {
         self.index.clone()
@@ -48,14 +47,12 @@ fn add_and_return() -> u32 {
     index_lock.add();
 
     index_lock.get()
-    
 }
 
 fn just_return() -> u32 {
     let index_lock = INDEX.lock().unwrap();
 
     index_lock.get()
-
 }
 
 #[proc_macro_derive(ResponseCommon)]
@@ -84,7 +81,6 @@ pub fn derive_trait_body_type(input: proc_macro::TokenStream) -> proc_macro::Tok
     proc_macro::TokenStream::from(expanded)
 }
 
-
 #[proc_macro_attribute]
 pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);
@@ -95,14 +91,11 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
     let first_arg = &args[0];
     let second_arg = &args[1];
 
-
     let first_arg_nv = {
         match first_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
@@ -110,24 +103,19 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let second_arg_nv = {
         match second_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
     };
 
-        
-
     let path_1 = &first_arg_nv.path;
     let path_2 = &second_arg_nv.path;
 
-
-    let f1_string = quote!{#path_1}.to_string().to_lowercase();
-    let f2_string = quote!{#path_2}.to_string().to_lowercase();
+    let f1_string = quote! {#path_1}.to_string().to_lowercase();
+    let f2_string = quote! {#path_2}.to_string().to_lowercase();
 
     let lit_1 = &first_arg_nv.lit;
     let lit_2 = &second_arg_nv.lit;
@@ -143,8 +131,7 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let uri = lits_map.get("path").unwrap();
     let method = lits_map.get("method").unwrap();
-    
-   
+
     let path_str = quote!(#uri).to_string().to_lowercase();
 
     let path_str_rep = path_str.replace("\"", "");
@@ -155,7 +142,7 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
         if &path_str_chars[0] == &'/' {
             path_str_chars.remove(0);
         }
-    
+
         if path_str_chars.last().unwrap() == &'/' {
             path_str_chars.pop();
         }
@@ -163,30 +150,25 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let method_str = quote!(#method).to_string().to_lowercase().replace("\"", "");
 
-    let num = format!("{}",add_and_return());
+    let num = format!("{}", add_and_return());
 
-    let endpint_name = format_ident!("endpoint_{}", 
-                                    &num);
+    let endpint_name = format_ident!("endpoint_{}", &num);
 
-    let function_name = format_ident!("getter_{}", 
-                                    &num);
+    let function_name = format_ident!("getter_{}", &num);
 
-    let expanded = quote! {     
+    let expanded = quote! {
         #input
 
         fn #function_name() -> Box<samovar::endpoint::Endpoint> {
             let #endpint_name = Box::new(samovar::endpoint::Endpoint::new_string_method(#path_str_rep.to_string(),  &#fname, #method_str.to_string()));
 
             #endpint_name
-        } 
+        }
 
     };
 
     proc_macro::TokenStream::from(expanded)
-
-    
 }
-
 
 #[proc_macro_attribute]
 pub fn context(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -196,37 +178,30 @@ pub fn context(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_sig_inputs = input.clone().sig.inputs;
 
     let ty = match input_sig_inputs.first() {
-        Some(i) => {
-            match i {
-                syn::FnArg::Receiver(_) => todo!(),
-                syn::FnArg::Typed(typed) => &typed.ty,
-            }
+        Some(i) => match i {
+            syn::FnArg::Receiver(_) => todo!(),
+            syn::FnArg::Typed(typed) => &typed.ty,
         },
         None => todo!(),
-    };    
+    };
 
     let first_arg = &args[0];
 
     let first_arg_nv = {
         match first_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
     };
 
-   
     let path_1 = &first_arg_nv.path;
 
-
-    let f1_string = quote!{#path_1}.to_string().to_lowercase();
+    let f1_string = quote! {#path_1}.to_string().to_lowercase();
 
     let lit_1 = &first_arg_nv.lit;
-
 
     let lits_map = {
         let mut m = HashMap::<String, &syn::Lit>::new();
@@ -238,7 +213,10 @@ pub fn context(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let ctx_name = lits_map.get("name").unwrap();
 
-    let name_str = quote!(#ctx_name).to_string().to_lowercase().replace("\"", "");
+    let name_str = quote!(#ctx_name)
+        .to_string()
+        .to_lowercase()
+        .replace("\"", "");
 
     let ident_add = format_ident!("ctx_{}_insert", name_str);
     let ident_static = format_ident!("CTX_{}", name_str.to_uppercase());
@@ -246,7 +224,7 @@ pub fn context(args: TokenStream, input: TokenStream) -> TokenStream {
     let init = quote! {
         {
             let mut ctx = std::collections::HashMap::<String, Box<#ty>>::new();
-            
+
             std::sync::RwLock::new(ctx)
          }
     };
@@ -254,7 +232,6 @@ pub fn context(args: TokenStream, input: TokenStream) -> TokenStream {
     let init_ptr = quote_spanned! {init.span() =>
         Box::into_raw(Box::new(#init))
     };
-
 
     let expanded = quote! {
         pub struct #ident_static;
@@ -280,37 +257,30 @@ pub fn context(args: TokenStream, input: TokenStream) -> TokenStream {
 
             *ctx_locked.insert(key.to_string(), item_mutex);
         }
-        
+
         #input
 
     };
 
     proc_macro::TokenStream::from(expanded)
-
 }
-
-
 
 #[proc_macro_attribute]
 pub fn memory_session(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);
     let input = parse_macro_input!(input as ItemFn);
 
-    
     let first_arg = &args[0];
 
     let first_arg_nv = {
         match first_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
     };
-
 
     let lit_1 = &first_arg_nv.lit;
 
@@ -323,7 +293,7 @@ pub fn memory_session(args: TokenStream, input: TokenStream) -> TokenStream {
     let init = quote! {
         {
             let mut sess = samovar::session::MemorySession::new();
-            
+
             std::sync::RwLock::new(sess)
          }
     };
@@ -331,7 +301,6 @@ pub fn memory_session(args: TokenStream, input: TokenStream) -> TokenStream {
     let init_ptr = quote_spanned! {init.span() =>
         Box::into_raw(Box::new(#init))
     };
-
 
     let expanded = quote! {
         pub struct #ident_static;
@@ -368,52 +337,41 @@ pub fn memory_session(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     proc_macro::TokenStream::from(expanded)
-
 }
-
-
 
 #[proc_macro_attribute]
 pub fn physical_session(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);
     let input = parse_macro_input!(input as ItemFn);
 
-    
     let first_arg = &args[0];
     let second_arg = &args[1];
 
     let first_arg_nv = {
         match first_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
     };
-
 
     let second_arg_nv = {
         match second_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
     };
-    
 
     let path_1 = &first_arg_nv.path;
     let path_2 = &second_arg_nv.path;
 
-
-    let f1_string = quote!{#path_1}.to_string().to_lowercase();
-    let f2_string = quote!{#path_2}.to_string().to_lowercase();
+    let f1_string = quote! {#path_1}.to_string().to_lowercase();
+    let f2_string = quote! {#path_2}.to_string().to_lowercase();
 
     let lit_1 = &first_arg_nv.lit;
     let lit_2 = &second_arg_nv.lit;
@@ -426,12 +384,18 @@ pub fn physical_session(args: TokenStream, input: TokenStream) -> TokenStream {
 
         m
     };
-    
+
     let lit_name = lits_map.get("name").unwrap();
     let lit_file_path = lits_map.get("filepath").unwrap();
 
-    let name_str = quote!(#lit_name).to_string().to_lowercase().replace("\"", "");
-    let path_str = quote!(#lit_file_path).to_string().to_lowercase().replace("\"", "");
+    let name_str = quote!(#lit_name)
+        .to_string()
+        .to_lowercase()
+        .replace("\"", "");
+    let path_str = quote!(#lit_file_path)
+        .to_string()
+        .to_lowercase()
+        .replace("\"", "");
 
     let ident_add = format_ident!("sess_{}_insert", name_str);
     let ident_static = format_ident!("SESS_{}", name_str.to_uppercase());
@@ -449,7 +413,6 @@ pub fn physical_session(args: TokenStream, input: TokenStream) -> TokenStream {
     let init_ptr = quote_spanned! {init.span()=>
         Box::into_raw(Box::new(#init))
     };
-
 
     let expanded = quote! {
         pub struct #ident_static;
@@ -486,11 +449,10 @@ pub fn physical_session(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     proc_macro::TokenStream::from(expanded)
-
 }
 
 #[proc_macro_attribute]
-pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream { 
+pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);
     let input = parse_macro_input!(input as ItemFn);
 
@@ -500,11 +462,9 @@ pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let first_arg_nv = {
         match first_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
@@ -512,25 +472,19 @@ pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let second_arg_nv = {
         match second_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
     };
-    
-
 
     let third_arg_nv = {
         match third_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
@@ -540,10 +494,9 @@ pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream {
     let path_2 = &second_arg_nv.path;
     let path_3 = &third_arg_nv.path;
 
-    let f1_string = quote!{#path_1}.to_string().to_lowercase();
-    let f2_string = quote!{#path_2}.to_string().to_lowercase();
-    let f3_string = quote!{#path_3}.to_string().to_lowercase();
-  
+    let f1_string = quote! {#path_1}.to_string().to_lowercase();
+    let f2_string = quote! {#path_2}.to_string().to_lowercase();
+    let f3_string = quote! {#path_3}.to_string().to_lowercase();
 
     let lit_1 = &first_arg_nv.lit;
     let lit_2 = &second_arg_nv.lit;
@@ -559,14 +512,22 @@ pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream {
         m
     };
 
-
     let lit_glob = lits_map.get("glob").unwrap();
     let lit_findex = lits_map.get("index_file").unwrap();
     let lit_path = lits_map.get("path").unwrap();
 
-    let glob_str = quote!(#lit_glob).to_string().to_lowercase().replace("\"", "");
-    let findex_str = quote!(#lit_findex).to_string().to_lowercase().replace("\"", "");
-    let path_str = quote!(#lit_path).to_string().to_lowercase().replace("\"", "");
+    let glob_str = quote!(#lit_glob)
+        .to_string()
+        .to_lowercase()
+        .replace("\"", "");
+    let findex_str = quote!(#lit_findex)
+        .to_string()
+        .to_lowercase()
+        .replace("\"", "");
+    let path_str = quote!(#lit_path)
+        .to_string()
+        .to_lowercase()
+        .replace("\"", "");
 
     let path_desensitized = path_str.replace("/", "_");
 
@@ -582,19 +543,18 @@ pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream {
                     _ => Some(#findex_str.to_string()),
                 }
             };
-            
+
             let path_uri = #path_str.to_string();
 
             let dir_server = samovar::staticserver::DirServer::new(path_uri, #glob_str, index_file);
-            
+
             std::sync::RwLock::new(dir_server)
          }
     };
-    
+
     let init_ptr = quote_spanned! {init.span() =>
         Box::into_raw(Box::new(#init))
     };
-
 
     let expanded = quote! {
         pub struct #struct_name;
@@ -615,7 +575,7 @@ pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream {
 
         #[route(method = "GET", path = #path_str)]
         fn #endpoint_ident(r: &samovar::request::Request) -> samovar::common::ResponseTextWrapper {
-            
+
             let dir_server = #struct_name.read().unwrap();
 
             let req_uri = r.get_raw_uri();
@@ -627,8 +587,6 @@ pub fn static_server(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     proc_macro::TokenStream::from(expanded)
-
-
 }
 
 #[proc_macro_attribute]
@@ -639,14 +597,11 @@ pub fn samovar(args: TokenStream, input: TokenStream) -> TokenStream {
     let first_arg = &args[0];
     let second_arg = &args[1];
 
-
     let first_arg_nv = {
         match first_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
@@ -654,11 +609,9 @@ pub fn samovar(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let second_arg_nv = {
         match second_arg {
-            syn::NestedMeta::Meta(meta) => {
-                match meta {
-                    syn::Meta::NameValue(nv) => nv,
-                    _ => panic!("Must ba named value"),
-                }
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(nv) => nv,
+                _ => panic!("Must ba named value"),
             },
             _ => panic!("Must be named value"),
         }
@@ -667,9 +620,8 @@ pub fn samovar(args: TokenStream, input: TokenStream) -> TokenStream {
     let path_1 = &first_arg_nv.path;
     let path_2 = &second_arg_nv.path;
 
-
-    let f1_string = quote!{#path_1}.to_string().to_lowercase();
-    let f2_string = quote!{#path_2}.to_string().to_lowercase();
+    let f1_string = quote! {#path_1}.to_string().to_lowercase();
+    let f2_string = quote! {#path_2}.to_string().to_lowercase();
 
     let lit_1 = &first_arg_nv.lit;
     let lit_2 = &second_arg_nv.lit;
@@ -694,8 +646,7 @@ pub fn samovar(args: TokenStream, input: TokenStream) -> TokenStream {
     let max = just_return();
 
     for i in 1..max {
-        let function_name = format_ident!("getter_{}", 
-                    i);
+        let function_name = format_ident!("getter_{}", i);
 
         function_names.push(function_name);
     }
@@ -703,18 +654,18 @@ pub fn samovar(args: TokenStream, input: TokenStream) -> TokenStream {
     let init = quote! {
         {
             let mut sam = samovar::samovar::Samovar::new(#addr_str, #port_str.parse::<u32>().unwrap());
-            
+
             #(sam.insert_endpoint(#function_names());)*
 
             std::sync::Mutex::new(sam)
          }
     };
-    
+
     let init_ptr = quote_spanned! {init.span() =>
         Box::into_raw(Box::new(#init))
     };
 
-    let expanded = quote! { 
+    let expanded = quote! {
         pub struct SAMOVAR;
 
         impl std::ops::Deref for SAMOVAR{
@@ -738,7 +689,7 @@ pub fn samovar(args: TokenStream, input: TokenStream) -> TokenStream {
             samovar_lock.insert_endpoint(e);
         }
 
-        
+
         pub fn print_endpoint_uris() {
             let mut samovar_lock = SAMOVAR.lock().unwrap();
 
@@ -756,11 +707,7 @@ pub fn samovar(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     proc_macro::TokenStream::from(expanded)
-
-    
 }
-
-
 
 enum Operation {
     CREATE,
@@ -783,10 +730,9 @@ pub fn context_global(item: TokenStream) -> TokenStream {
             "get" => Operation::GET,
             "insert" => Operation::INSERT,
             "free" => Operation::FREE,
-            _ => panic!("Wrong args")
+            _ => panic!("Wrong args"),
         }
-    };    
-
+    };
 
     let expanded = match operation {
         Operation::CREATE => {
@@ -799,37 +745,36 @@ pub fn context_global(item: TokenStream) -> TokenStream {
             let init = quote! {
                 {
                     let mut ctx = std::collections::HashMap::<String, Box<#ty>>::new();
-                    
+
                     std::sync::RwLock::new(ctx)
                  }
             };
-        
+
             let init_ptr = quote_spanned! {init.span() =>
                 Box::into_raw(Box::new(#init))
             };
-        
-        
+
             let expanded = quote! {
                 pub struct #ident_static;
-        
+
                 impl std::ops::Deref for #ident_static {
                     type Target = std::sync::RwLock<std::collections::HashMap<String, Box<#ty>>>;
-        
+
                     fn deref(&self) -> &std::sync::RwLock<std::collections::HashMap<String, Box<#ty>>> {
                         static ONCE: std::sync::Once = std::sync::Once::new();
                         static mut VALUE: *mut std::sync::RwLock<std::collections::HashMap<String, Box<#ty>>> = 0 as *mut std::sync::RwLock<std::collections::HashMap<String, Box<#ty>>>;
-        
+
                         unsafe {
                             ONCE.call_once(|| VALUE = #init_ptr);
                             &*VALUE
                         }
                     }
-                }             
-        
+                }
+
             };
 
             expanded
-        },
+        }
         Operation::INSERT => {
             let value = &arg_split[1];
             let name = &arg_split[3];
@@ -849,18 +794,15 @@ pub fn context_global(item: TokenStream) -> TokenStream {
             };
 
             expanded
-        },
+        }
         Operation::GET => {
             let key = &arg_split[1];
-            let name  = &arg_split[3];
+            let name = &arg_split[3];
 
             let unwrap = {
                 match arg_split.get(4) {
-                    Some(str) => {
-                        str.to_lowercase() == "unwrap"
-                    },
-                    None => false
-
+                    Some(str) => str.to_lowercase() == "unwrap",
+                    None => false,
                 }
             };
 
@@ -870,9 +812,8 @@ pub fn context_global(item: TokenStream) -> TokenStream {
 
             let item_got = format_ident!("got_{}", key);
 
-
             let expanded_init = quote! {
-                let #locked_name = #ident_static.read().unwrap();            
+                let #locked_name = #ident_static.read().unwrap();
             };
 
             let expanded = {
@@ -881,22 +822,21 @@ pub fn context_global(item: TokenStream) -> TokenStream {
                         quote_spanned! {expanded_init.span()=>
                             #expanded_init
 
-                            let #item_got = #locked_name.get(#key_str).unwrap();                            
+                            let #item_got = #locked_name.get(#key_str).unwrap();
                         }
-                    },
+                    }
                     false => {
                         quote_spanned! {expanded_init.span()=>
                             #expanded_init
 
-                            let #item_got = #locked_name.get(#key_str);                            
+                            let #item_got = #locked_name.get(#key_str);
                         }
                     }
                 }
             };
 
             expanded
-
-        },
+        }
         Operation::FREE => {
             let key = &arg_split[1];
 
@@ -908,12 +848,8 @@ pub fn context_global(item: TokenStream) -> TokenStream {
             };
 
             expanded
-
-        },
+        }
     };
 
-
     proc_macro::TokenStream::from(expanded)
-
-
 }
