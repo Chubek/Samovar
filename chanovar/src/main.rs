@@ -22,7 +22,7 @@ fn index(_: &Request) -> ResponseTextWrapper {
     resp.compose()
 }
 
-#[route(method = "GET", path = "/test", index = 2, group = "main")]
+#[route(method = "GET", path = "/test", index = 1, group = "main")]
 fn test(r: &Request) -> ResponseTextWrapper {
     let field_header = r.get_header("test-header").unwrap();
     let field_str = String::from("Served by Samovar");
@@ -37,8 +37,8 @@ fn test(r: &Request) -> ResponseTextWrapper {
     resp.compose()
 }
 
-#[static_server(glob = "./static/*", path = "/static", group = "main", index_file = "None", index = 1)]
-#[samovar(addr = "0.0.0.0", port = "8545", groups = "(main; 0..2)")]
+#[static_server(glob = "./static/*", path = "/static", group = "static", index_file = "index.html", index = 1)]
+#[samovar(addr = "0.0.0.0", port = "8545", groups = "(main; 0..1), (static; 1)")]
 fn main() {
 
     serve_forever();
