@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate macrovar;
-
+use random_string::generate;
 use std::result;
 
 use samovar::{
@@ -12,6 +12,8 @@ use samovar::{
     response::Response,
 };
 use serde::{Deserialize, Serialize, __private::de::Content};
+use std::rc::Rc; 
+
 
 #[derive(ResponseCommon, Deserialize, Serialize, Clone)]
 struct ResType {
@@ -28,20 +30,17 @@ fn index(_: &Request) -> ResponseTextWrapper {
         HttpStatus::Http200Ok,
     );
 
+    let ltem = String::from("fff");
+
+    context_global!(insert ltem into b key jun);
+
     resp.compose()
 }
 
+#[memory_session(name = "a")]
 #[route(method = "POST", path = "/test")]
-fn test(r: &Request) -> ResponseTextWrapper {
-    let field_header = r.get_header("test-header").unwrap();
-    let field_str = String::from("Served by Samovar");
-    let field_u32 = 12u32;
-
-    let res = ResType {
-        field_header,
-        field_str,
-        field_u32,
-    };
+fn test(r: &Request) -> ResponseTextWrapper {   
+ /* 
 
     let status = HttpStatus::Http202Accepted;
 
@@ -67,13 +66,70 @@ fn test(r: &Request) -> ResponseTextWrapper {
         }
     };
 
-    result
+
+
+    let charset = "1234567st4t5234t635wujhwuydfhjdhj890";
+
+    let a: Option<String> = sess_a_get("abu");
+
+    let result = match a {
+        Some(s) => {
+            let mut resp = Response::<DummyResponseType>::new_string(
+                s, 
+                MimeType::TextPlain, 
+                HttpStatus::Http200Ok);
+            
+            sess_a_insert("abu", generate(6, charset).as_str());
+
+            resp.compose()
+        },
+        None => {
+            let mut resp = Response::<DummyResponseType>::new_string(
+                "init".to_string(), 
+                MimeType::TextPlain, 
+                HttpStatus::Http200Ok);
+            
+            sess_a_insert("abu", generate(6, charset).as_str());
+
+            resp.compose()
+        },
+    };
+
+
+ */ 
+    println!("saggd");
+
+    context_global!(get jun from b);
+    println!("got!");
+    let ss = got_jun.unwrap();
+
+    println!("{}", ss);
+
+    let mut resp = Response::<DummyResponseType>::new_string(
+        format!("{}", ss),
+        MimeType::TextPlain,
+        HttpStatus::Http200Ok
+    );
+
+    resp.compose()
 }
+
+context_global! { create b type String }
+
 
 #[static_server(glob = "./static/*", path = "/static", index_file = "none")]
 #[samovar(addr = "0.0.0.0", port = "1500")]
 fn main() {
     modify_405_template("This method aint it yo!".to_string());
+
+    let lm = String::from("fsdf");
+
+    context_global!(insert lm into b key jun);
+    context_global!(get jun from b unwrap);
+
+    println!("{}", got_jun);
+
+    context_global!(free jun);
 
     serve_forever();
 }

@@ -13,3 +13,4 @@ macrovar = { path = "../macrovar" }
 samovar = { path = "../samovar" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+random-string = "1.0"
