@@ -32,12 +32,30 @@ fn index(_: &Request) -> ResponseTextWrapper {
 
     let ltem = String::from("fff");
 
-    context_global!(insert ltem into b key jun);
+    context_global!(get jun from b unwrap);
+
+    println!("{}", got_jun);
+
+    resp.compose()
+}
+
+#[route(method = "GET", path = "/get-ip")]
+fn get_ip(r: &Request) -> ResponseTextWrapper {
+    let ip = r.get_ip();
+
+    let ip_str = format!("IP: {}", &ip);
+
+    let mut resp = Response::<DummyResponseType>::new_string(
+        ip_str,
+        samovar::common::MimeType::TextHtml,
+        HttpStatus::Http200Ok,
+    );
 
     resp.compose()
 }
 
 #[memory_session(name = "a")]
+#[physical_session(name = "s", filepath = "mm/cache")]
 #[route(method = "POST", path = "/test")]
 fn test(r: &Request) -> ResponseTextWrapper {   
  /* 
@@ -66,11 +84,11 @@ fn test(r: &Request) -> ResponseTextWrapper {
         }
     };
 
-
+ */
 
     let charset = "1234567st4t5234t635wujhwuydfhjdhj890";
 
-    let a: Option<String> = sess_a_get("abu");
+    let a: Option<String> = sess_s_get("abu");
 
     let result = match a {
         Some(s) => {
@@ -79,7 +97,7 @@ fn test(r: &Request) -> ResponseTextWrapper {
                 MimeType::TextPlain, 
                 HttpStatus::Http200Ok);
             
-            sess_a_insert("abu", generate(6, charset).as_str());
+            sess_s_insert("abu", generate(6, charset).as_str());
 
             resp.compose()
         },
@@ -89,14 +107,14 @@ fn test(r: &Request) -> ResponseTextWrapper {
                 MimeType::TextPlain, 
                 HttpStatus::Http200Ok);
             
-            sess_a_insert("abu", generate(6, charset).as_str());
+            sess_s_insert("abu", generate(6, charset).as_str());
 
             resp.compose()
         },
     };
 
-
- */ 
+/* 
+ *
     println!("saggd");
 
     context_global!(get jun from b);
@@ -110,8 +128,10 @@ fn test(r: &Request) -> ResponseTextWrapper {
         MimeType::TextPlain,
         HttpStatus::Http200Ok
     );
+*/
 
-    resp.compose()
+    result
+
 }
 
 context_global! { create b type String }
