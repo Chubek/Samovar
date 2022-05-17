@@ -2,6 +2,10 @@
 name = "macrovar"
 version = "0.1.0"
 authors = ["Chubak Bidpaa <chubakbidpaa@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Macros for Samovar, a low-level HTTP Framework"
+repository = "https://github.com/Chubek/Samovar"
+keywords = ["web", "http", "framework", "macros", "proc"]
 
 [lib]
 proc-macro = true
@@ -9,4 +13,5 @@ proc-macro = true
 [dependencies]
 syn = { version = "1.0", features = ["full"] }
 quote = "1.0"
-
+lazy_static = "*"
+random-string = "1.0"

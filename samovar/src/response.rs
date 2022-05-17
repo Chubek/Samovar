@@ -33,7 +33,7 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
     }
     pub fn new_json(object: T, status: HttpStatus) -> Self {
         let body = ResponseBody::new_json(object.clone());
-        let server = String::from("ChubyHttp/0.0.1b");
+        let server = String::from("Samovar/0.0.1b");
         let content_length = object.get_length();
         let content_type = MimeType::ApplicationJson;
         let datetime = Utc::now();
@@ -52,7 +52,7 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
 
     pub fn new_string(t: String, content_type: MimeType, status: HttpStatus) -> Self {
         let body = ResponseBody::new_string(content_type.clone(), t.clone());
-        let server = String::from("ChubyHttp/0.0.1b");
+        let server = String::from("Samovar/0.0.1b");
         let content_length = t.len();
         let datetime = Utc::now();
         let headers = vec![];
@@ -140,12 +140,15 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         self.format_content_add_header();
         self.sort_header_vec();
 
+        let cchar_vec = String::from_utf8(vec![13u8, 10u8]).unwrap();
+
+
         let h_joined = self
             .headers
             .iter()
             .map(|x| Self::make_header_single(x))
             .collect::<Vec<String>>()
-            .join("\n");
+            .join(&cchar_vec);
         h_joined
     }
 
@@ -154,7 +157,11 @@ impl<'a, T: Clone + ResponseCommon + Deserialize<'a>> Response<'a, T> {
         let headers_joined = self.make_header();
         let body = self.make_body();
 
-        let ret = format!("{}\n{}\n\n{}", metadata, headers_joined, body);
+        let cchar_vec = String::from_utf8(vec![13u8, 10u8]).unwrap();
+        let cchar_vec_double = String::from_utf8(vec![13u8, 10u8, 13u8, 10u8]).unwrap();
+
+
+        let ret = format!("{}{}{}{}{}", metadata, cchar_vec, headers_joined, cchar_vec_double, body);
 
         ResponseTextWrapper::new(ret)
     }

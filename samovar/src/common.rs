@@ -1,11 +1,9 @@
 use core::panic;
-use std::{marker::PhantomData, net::TcpStream, io::{BufWriter, Write}, sync::Mutex};
+use std::{marker::PhantomData, net::{TcpStream, Shutdown}, io::Write, sync::Mutex};
 use serde::Deserialize;
 use serde_json::{from_str, Value};
-use std::collections::HashMap;
 
-use crate::endpoint::Endpoint;
-
+#[derive(Clone)]
 pub struct Header {
     pub key: String,
     pub value: String,
@@ -33,12 +31,13 @@ impl Into<String> for MimeType {
     } 
 }
 
+#[derive(Clone)]
 pub enum RequestBodyType {
     Json(Value),
     Str(String),
 }
 
-
+#[derive(Clone)]
 pub struct RequestBody {
     pub content_type: MimeType,
     pub content: RequestBodyType,
@@ -93,11 +92,13 @@ impl<'a,T: Clone + ResponseCommon + Deserialize<'a>> ResponseBody<'a, T> {
     }
 }
 
+#[derive(Clone)]
 pub struct Params {
     pub key: String,
     pub value: String,
 }
 
+#[derive(Clone, PartialEq, Eq)]
 pub enum Method {
     GET,
     POST,
@@ -133,6 +134,7 @@ impl Into<String> for Method {
     }
 }
 
+#[derive(Clone)]
 pub struct UserInfo {
     pub username: String,
     pub password: String,
@@ -372,19 +374,53 @@ impl ResponseTextWrapper {
         ResponseTextWrapper(t)
     }
 
-    pub fn serve(&self, stream: &TcpStream) {
+    pub fn serve(&self, stream: &mut TcpStream) {
         let ResponseTextWrapper(t) = self;
 
-        let mut writer = BufWriter::new(stream);
+        stream.write_all(t.as_bytes()).unwrap();
 
-        writer.write(t.as_bytes()).unwrap();
+        stream.shutdown(Shutdown::Both).unwrap();
+
+        println!("Served!");
     }
 }
 
+pub struct TemplateHolder {
+    template: String,
+}
+
+impl TemplateHolder {
+    pub fn new(t: String) -> Self {
+        TemplateHolder { template: t }
+    }
+
+    pub fn mutate(&mut self, t_rep: String) {
+        self.template = t_rep;
+    }
+
+    pub fn get_temp(&self) -> String {
+        self.template.clone()
+    }
+}
+
+
+
 lazy_static! {
-    pub static ref ENDPOINT_MAP: Mutex<HashMap<String, Endpoint>> = {
-        let m = HashMap::<String, Endpoint>::new();
-    
-        Mutex::new(m)
-    };  
+    pub static ref TEMP_404: Mutex<TemplateHolder>  = Mutex::new(TemplateHolder::new("404 Not Found".to_string()));
+    pub static ref TEMP_405: Mutex<TemplateHolder>  = Mutex::new(TemplateHolder::new("405 Not Found".to_string()));
+}
+
+
+
+
+pub fn modify_404_template(template: String) {
+    let mut temp_lock = TEMP_404.lock().unwrap();
+
+    temp_lock.mutate(template)
+}
+
+pub fn modify_405_template(template: String) {
+    let mut temp_lock = TEMP_405.lock().unwrap();
+
+    temp_lock.mutate(template)
 }

@@ -1,6 +1,6 @@
 use crate::common::*;
 use crate::request::Request;
-use std::io::{BufReader, Read};
+use std::io::{BufReader, BufRead};
 use std::net::TcpStream;
 
 pub struct RequestParser;
@@ -25,33 +25,37 @@ impl RequestParser {
         let body = Self::get_body(&req, content_type.clone());
         let ip = stream.local_addr().unwrap();
 
-        Request {
-            method,
-            uri,
+        let method_str: String = method.clone().into();
+        println!("Accessed: \"{}\" by method: {}", &uri, method_str);
+
+        Request::new(
             headers,
+            body,
+            uri,
+            uri_params,
+            uri_paths,
+            bare_uri,
+            method,
+            port,
+            userinfo,
             host,
+            scheme,
             referer,
             content_type,
-            scheme,
-            uri_params,
-            userinfo,
-            bare_uri,
-            port,
-            uri_paths,
-            body,
             ip,
-            location,
-        }
+            location
+        )
+
     }
 
     fn read_data(stream: &TcpStream) -> String {
         let mut reader = BufReader::new(stream);
 
-        let mut data = Vec::<u8>::new();
+        let received = reader.fill_buf().unwrap().to_vec();
 
-        reader.read_to_end(&mut data).unwrap();
+        reader.consume(received.len());
 
-        let ret = String::from_utf8(data).unwrap();
+        let ret = String::from_utf8(received).unwrap();
 
         ret
     }
@@ -59,6 +63,7 @@ impl RequestParser {
     fn get_method(req: &String) -> Method {
         let first_line = req.lines().into_iter().collect::<Vec<&str>>()[0];
 
+        
         let first_word = first_line
             .split_whitespace()
             .into_iter()
@@ -85,20 +90,33 @@ impl RequestParser {
     }
 
     fn get_headers(req: &String) -> Vec<Header> {
-        let ret = req
+        let cchar = String::from_utf8(vec![13u8, 10u8, 13u8, 10u8]).unwrap();
+
+
+        let ret: Vec<Header> = req
+            .split(cchar.as_str())
+            .next()
+            .unwrap()
             .lines()
             .into_iter()
             .enumerate()
-            .filter(|&(i, l)| i >= 2 && l.split(": ").count() == 2)
+            .filter(|&(i, l)| i >= 1 && l.split(": ").count() == 2)
             .map(|(_, l)| {
                 let l_split = l.split(": ").collect::<Vec<&str>>();
+                
+                let key = l_split[0].to_string().to_lowercase();
+                let value = l_split[1].to_string();
+                
+                println!("Header: {} -> {}", &key, &value);
 
                 Header {
-                    key: l_split[0].to_string(),
-                    value: l_split[1].to_string(),
+                    key,
+                    value,
                 }
             })
             .collect();
+
+        println!("Got {} headers", &ret.len());        
 
         ret
     }
@@ -254,16 +272,22 @@ impl RequestParser {
 
         let uri_no_params = uri.split("?q=").next().unwrap().to_string();
 
-        uri_no_params
+        if uri_no_params.len() == 0 {
+            return "/".to_string()
+        }
+
+        uri_no_params.to_lowercase()
     }
 
     fn get_body(req: &String, ctype: MimeType) -> RequestBody {
-        let req_split = req.split("\n\n");
+        let cchar_vec = String::from_utf8(vec![13u8, 10u8, 13u8, 10u8]).unwrap();
+
+        let req_split = req.split(cchar_vec.as_str());        
 
         let mut ret = String::new();
 
         if req_split.count() == 2 {
-            if let Some(b) = req.split("\n\n").into_iter().last() {
+            if let Some(b) = req.split(cchar_vec.as_str()).into_iter().last() {
                 ret = b.to_string();
             }
         }
